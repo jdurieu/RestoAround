@@ -21,7 +21,8 @@ class ViewController: UIViewController, MKMapViewDelegate, CLLocationManagerDele
     @IBOutlet weak var mapViewConstraint: NSLayoutConstraint!
     
     lazy var mainLocationManager = CLLocationManager()
-    lazy var annotations = [RestoAnnotation]()
+    
+    var annotations = [RestoAnnotation]()
     
     lazy var restosV = [Resto]()
     
@@ -69,10 +70,19 @@ class ViewController: UIViewController, MKMapViewDelegate, CLLocationManagerDele
     // MARK: - MKMapView delegate methods
 
     //MARK: -1- Annomations Methods
+    
     func mapView(mapView: MKMapView, viewForAnnotation annotation: MKAnnotation) -> MKAnnotationView? {
         
+        /*
         if isUserAnnotation(annotation, mapView: mapView) {
             return nil
+        }
+        */
+        let annotationCoordinate = annotation.coordinate
+        let userLocationCoordinate = mapView.userLocation.coordinate
+        
+        if annotationCoordinate.latitude == userLocationCoordinate.latitude && annotationCoordinate.longitude == userLocationCoordinate.longitude{
+            return .None
         }
         
         var annotationView = mapView.dequeueReusableAnnotationViewWithIdentifier(annotationIdentifier)
@@ -84,16 +94,12 @@ class ViewController: UIViewController, MKMapViewDelegate, CLLocationManagerDele
         }
         annotationView?.canShowCallout = true
     
-    
         
-        
-        
-        //Ne fonctionne pas pour l'instant avec le texte ... à voir plus tard... après l'éval en gros
         let rightCalloutButton=UIButton(type: UIButtonType.Custom)
-        
+
+        rightCalloutButton.frame = CGRectMake(0, 0, 100, 50)
         rightCalloutButton.setTitle("Notifier", forState: .Normal)
         rightCalloutButton.setTitleColor(UIColor.redColor(), forState: .Normal)
-        rightCalloutButton.frame = CGRectMake(0, 0, 100, 50)
         
         annotationView?.rightCalloutAccessoryView = rightCalloutButton
         
@@ -112,9 +118,57 @@ class ViewController: UIViewController, MKMapViewDelegate, CLLocationManagerDele
     
     func mapView(mapView: MKMapView, didSelectAnnotationView view: MKAnnotationView) {
         
-        launchWebView()
-
+        if let annotations = view.annotation as? RestoAnnotation{
+            
+        let resto = annotations.resto
+            
+            RestoFinder.findRestoDetail(resto, restoDetailHandler: { (restoUrl) in
+                
+                if let currentRestoUrl = restoUrl, url = NSURL(string: currentRestoUrl) {
+                    self.webView.loadRequest(NSURLRequest(URL: url))
+                    
+                    let frame = self.view.frame
+                    self.mapViewConstraint.constant = 2.0*frame.size.height/3.0
+                }
+                else {
+                    self.loadAboutBlank()
+                    
+                    self.mapViewConstraint.constant = 0.0
+                }
+                
+                UIView.animateWithDuration(0.9, animations: {
+                    self.view.layoutIfNeeded()
+                })
+                
+                UIView.animateWithDuration(0.4, delay: 0.0, usingSpringWithDamping: 0.7, initialSpringVelocity: 0.9, options: UIViewAnimationOptions.CurveLinear, animations: {
+                    
+                    self.view.layoutIfNeeded()
+                    
+                    }, completion: { (finished) in
+                        
+                })
+        
+        
+            })
+        }
     }
+    
+    
+    func mapView(mapView: MKMapView, didDeselectAnnotationView view: MKAnnotationView) {
+        self.loadAboutBlank()
+        
+        self.mapViewConstraint.constant = 0.0
+        
+        UIView.animateWithDuration(0.4, delay: 0.0, usingSpringWithDamping: 0.7, initialSpringVelocity: 0.9, options: UIViewAnimationOptions.CurveLinear, animations: {
+            
+            self.view.layoutIfNeeded()
+            
+            }, completion: { (finished) in
+                
+        })
+    }
+    
+
     
     //MARK: -2- Location Methods
 
@@ -148,6 +202,12 @@ class ViewController: UIViewController, MKMapViewDelegate, CLLocationManagerDele
             restosV.append(resto)
         }
         
+    }
+    
+    func loadAboutBlank() {
+        if let aboutBlankUrl = NSURL(string: "about:blank") {
+            self.webView.loadRequest(NSURLRequest(URL: aboutBlankUrl))
+        }
     }
     
     func addAnnotations(restos:[Resto]) {
@@ -207,20 +267,5 @@ class ViewController: UIViewController, MKMapViewDelegate, CLLocationManagerDele
 
         
         UIApplication.sharedApplication().scheduleLocalNotification(localNotification)
-    }
-    
-    //MARK: - WebView Methods
-    
-    func launchWebView(){
-          /*
-        self.mapViewConstraint.constant = view.bounds.height/2
-        self.webViewConstraint.constant = view.bounds.height/2
-        
-        UIView.animateWithDuration(0.9, animations: { self.view.layoutIfNeeded()})
-    */
-        
-        //A changer pour l'url du resto
-        webView.loadRequest(NSURLRequest(URL: NSURL(string: "https:www.facebook.com")!))
-    
     }
 }

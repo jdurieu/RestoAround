@@ -98,9 +98,9 @@
 		3CF40C341CC79B690053A963 /* model */ = {
 			isa = PBXGroup;
 			children = (
-				3CF40C2B1CC60E6B0053A963 /* RestoAnnotation.swift */,
 				3CF40C291CC60DA90053A963 /* Resto.swift */,
 				3CF40C2F1CC611AB0053A963 /* Resto+Json.swift */,
+				3CF40C2B1CC60E6B0053A963 /* RestoAnnotation.swift */,
 			);
 			name = model;
 			sourceTree = "<group>";

@@ -7,13 +7,12 @@
 //
 
 import Foundation
-import SwiftyJSON
 
 
-    struct Resto{
-        
+class Resto: NSObject{
+    
         var name: String!
-        var longitude: Double!
-        var latitude: Double!
+        var longitude: Float!
+        var latitude: Float!
         var urlDetail:String!
 }

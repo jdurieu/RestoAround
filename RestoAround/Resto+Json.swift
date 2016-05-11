@@ -8,21 +8,27 @@
 
 
 import Foundation
-
 import SwiftyJSON
 
 
 
 extension Resto {
-    init?(json:JSON) {
+    convenience init?(json:JSON) {
+        self.init()
         
-        if let name = json["titleNoFormatting"].string, latitude = json["lat"].string, longitude = json["lng"].string{
-            self.name = name
-            self.latitude = Double(latitude)
-            self.longitude = Double(longitude)
-            self.urlDetail = json["detailUrl"].string
-        }else{
-            return nil
+        if let latitude = json["lat"].string {
+            self.latitude = Float(latitude)
         }
-    }
+        
+        if let longitude = json["lng"].string {
+            self.longitude = Float(longitude)
+        }
+        
+        if let name = json["titleNoFormatting"].string{
+            self.name = name
+        }
+        
+        self.urlDetail = json["detailUrl"].string
+
+}
 }

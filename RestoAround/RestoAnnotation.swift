@@ -14,10 +14,11 @@ class RestoAnnotation: NSObject, MKAnnotation {
     var coordinate: CLLocationCoordinate2D
     var title: String?
     var subtitle: String?
+    var resto:Resto!
     
     
     init(resto: Resto) {
-        self.coordinate = CLLocationCoordinate2DMake(resto.latitude, resto.longitude)
+        self.coordinate = CLLocationCoordinate2DMake(CLLocationDegrees(resto.latitude), CLLocationDegrees(resto.longitude))
         self.title = resto.name
         self.subtitle = nil
     }

@@ -12,66 +12,60 @@ import SwiftyJSON
 
 class RestoFinder {
     
-    typealias RestoResult = (restos:[Resto]) -> Void
+    internal typealias RestoResult = (restos:[Resto]) -> Void
+    internal typealias RestoDetailResult = (restoUrl:String?) -> Void
     
-    static func findRestoAround(latitude: Double, longitude: Double, result: RestoResult) {
+    class func findRestoAround(latitude: Double, longitude: Double, resultHandler: RestoResult) {
         
         
         let url = "https://db.aroundmeapi.com/v3/categorysearch/restaurant?lat=\(latitude)&lon=\(longitude)"
         
         Alamofire.request(.GET, url).responseData { (response) in
             
+            var restos = [Resto]()
+            
             if let data = response.data {
                 let json = JSON(data: data)
                 
                 if let results = json["result"].array{
-                 var allRestos = [Resto]()
                     
                     for jsonObject in results {
                         if let resto = Resto(json: jsonObject){
-                            /*
-                            Alamofire.request(.GET,resto.urlDetail).responseData{ (response) in
-                                
-                                if let data = response.data{
-                                    let json = JSON (data: data)
-                                    let results = json ["result"]
-                                    
-                                    if let primary = results["contactInfo"].array {
-                                        var resto = resto
-                                        
-                                        for jsonObject in primary {
-                                            if let bar = Bar(json: jsonObject) {
-                                                allBars.append(bar)
-                                            }
-                                        }
-
-                                    
-                                    
-                                    }
-                                    
-                                    )
-                                
-                                }
-                            
-                            
-                            
-                            
-                            
-                            }
-                            
-                            */
-                            
-                            
-                            
-                            allRestos.append(resto)
-
+                            restos.append(resto)
                         }
                     }
-                    result(restos: allRestos)
+                    resultHandler(restos: restos)
                     
                 }
             }
         }
     }
     
+    
+    class func findRestoDetail (resto: Resto, restoDetailHandler:RestoDetailResult){
+    
+        if let detailUrl = resto.urlDetail {
+            Alamofire.request(.GET, detailUrl).responseData(completionHandler: { (response) in
+                if let data = response.data {
+                    let jsonRoot = JSON(data: data)
+                    
+                    var resultUrl:String?
+                    
+                    if let contactInfos = jsonRoot["result"]["contactInfo"].array {
+                        for contactInfo in contactInfos {
+                            if let type = contactInfo["Type"].string, attribute = contactInfo["Attribute"].string where type=="u" && !attribute.containsString("maps.google.com") {
+                                
+                                resultUrl = attribute
+                            }
+                        }
+                    }
+                    
+                    restoDetailHandler(restoUrl: resultUrl)
+                }
+            })
+
+    
+    
+    }
+    }
 }
